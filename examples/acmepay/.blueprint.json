@@ -1,0 +1,18 @@
+{
+  "blueprint": "Collins Obasuyi Product Engineering Blueprint",
+  "blueprintVersion": "0.1.0",
+  "generator": "collins-obasuyi-blueprint",
+  "createdAt": "2026-08-18T19:26:21.926Z",
+  "project": {
+    "name": "acmepay",
+    "slug": "acmepay"
+  },
+  "modules": {
+    "ai": true,
+    "sensitiveData": true,
+    "authentication": true,
+    "integrations": true,
+    "regulated": true,
+    "mobile": true
+  }
+}
