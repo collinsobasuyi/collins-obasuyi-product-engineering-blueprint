@@ -192,77 +192,110 @@ const replacements = {
   CREATED_DATE: new Date().toISOString().slice(0, 10)
 };
 
-await renderTemplate(
-  path.join(blueprintRoot, "templates/core/AGENTS.md"),
-  path.join(outputDir, "AGENTS.md"),
-  replacements
-);
+const baselineTemplates = [
+  // Core
+  ["templates/core/AGENTS.md", "AGENTS.md"],
+  ["templates/core/README.md", "README.md"],
 
-await renderTemplate(
-  path.join(blueprintRoot, "templates/core/README.md"),
-  path.join(outputDir, "README.md"),
-  replacements
-);
+  // Product
+  ["templates/product/PRODUCT_OVERVIEW.md", "docs/00-product/PRODUCT_OVERVIEW.md"],
+  ["templates/product/MVP_SCOPE.md", "docs/00-product/MVP_SCOPE.md"],
+  ["templates/product/PRODUCT_PRINCIPLES.md", "docs/00-product/PRODUCT_PRINCIPLES.md"],
 
-await renderTemplate(
-  path.join(blueprintRoot, "templates/product/PRODUCT_OVERVIEW.md"),
-  path.join(outputDir, "docs/00-product/PRODUCT_OVERVIEW.md"),
-  replacements
-);
+  // Research
+  ["templates/research/MARKET_RESEARCH.md", "docs/01-research/MARKET_RESEARCH.md"],
+  ["templates/research/COMPETITOR_LANDSCAPE.md", "docs/01-research/COMPETITOR_LANDSCAPE.md"],
+  ["templates/research/USER_RESEARCH.md", "docs/01-research/USER_RESEARCH.md"],
+  ["templates/research/VALIDATION_PLAN.md", "docs/01-research/VALIDATION_PLAN.md"],
+  ["templates/research/VALIDATION_LOG.md", "docs/01-research/VALIDATION_LOG.md"],
 
-await renderTemplate(
-  path.join(blueprintRoot, "templates/product/MVP_SCOPE.md"),
-  path.join(outputDir, "docs/00-product/MVP_SCOPE.md"),
-  replacements
-);
+  // Requirements
+  ["templates/requirements/PRODUCT_REQUIREMENTS.md", "docs/02-requirements/PRODUCT_REQUIREMENTS.md"],
+  ["templates/requirements/FUNCTIONAL_REQUIREMENTS.md", "docs/02-requirements/FUNCTIONAL_REQUIREMENTS.md"],
+  ["templates/requirements/NON_FUNCTIONAL_REQUIREMENTS.md", "docs/02-requirements/NON_FUNCTIONAL_REQUIREMENTS.md"],
+  ["templates/requirements/USER_STORIES.md", "docs/02-requirements/USER_STORIES.md"],
+  ["templates/requirements/ACCEPTANCE_CRITERIA.md", "docs/02-requirements/ACCEPTANCE_CRITERIA.md"],
+  ["templates/requirements/TRACEABILITY_MATRIX.md", "docs/02-requirements/TRACEABILITY_MATRIX.md"],
 
-await renderTemplate(
-  path.join(blueprintRoot, "templates/product/PRODUCT_PRINCIPLES.md"),
-  path.join(outputDir, "docs/00-product/PRODUCT_PRINCIPLES.md"),
-  replacements
-);
+  // Design
+  ["templates/design/UX_PRINCIPLES.md", "docs/03-design/UX_PRINCIPLES.md"],
+  ["templates/design/USER_JOURNEYS.md", "docs/03-design/USER_JOURNEYS.md"],
+  ["templates/design/INFORMATION_ARCHITECTURE.md", "docs/03-design/INFORMATION_ARCHITECTURE.md"],
+  ["templates/design/DESIGN_SYSTEM.md", "docs/03-design/DESIGN_SYSTEM.md"],
+  ["templates/design/ACCESSIBILITY_REQUIREMENTS.md", "docs/03-design/ACCESSIBILITY_REQUIREMENTS.md"],
 
-await renderTemplate(
-  path.join(blueprintRoot, "templates/architecture/SYSTEM_ARCHITECTURE.md"),
-  path.join(outputDir, "docs/05-architecture/SYSTEM_ARCHITECTURE.md"),
-  replacements
-);
+  // Domain
+  ["templates/domain/DOMAIN_MODEL.md", "docs/04-domain/DOMAIN_MODEL.md"],
+  ["templates/domain/BUSINESS_RULES.md", "docs/04-domain/BUSINESS_RULES.md"],
+  ["templates/domain/DECISION_RULES.md", "docs/04-domain/DECISION_RULES.md"],
+  ["templates/domain/SAFETY_BOUNDARIES.md", "docs/04-domain/SAFETY_BOUNDARIES.md"],
 
-await renderTemplate(
-  path.join(blueprintRoot, "templates/quality/TEST_STRATEGY.md"),
-  path.join(outputDir, "docs/10-quality/TEST_STRATEGY.md"),
-  replacements
-);
+  // Architecture
+  ["templates/architecture/SYSTEM_ARCHITECTURE.md", "docs/05-architecture/SYSTEM_ARCHITECTURE.md"],
 
-await renderTemplate(
-  path.join(blueprintRoot, "templates/planning/SPRINT_PLAN.md"),
-  path.join(outputDir, "docs/12-planning/SPRINT_PLAN.md"),
-  replacements
-);
+  // Data
+  ["templates/data/DATA_DICTIONARY.md", "docs/07-data/DATA_DICTIONARY.md"],
+  ["templates/data/DATA_PROVENANCE.md", "docs/07-data/DATA_PROVENANCE.md"],
+  ["templates/data/DATA_RETENTION.md", "docs/07-data/DATA_RETENTION.md"],
+  ["templates/data/USER_DATA.md", "docs/07-data/USER_DATA.md"],
 
-await renderTemplate(
-  path.join(
-    blueprintRoot,
-    "templates/security/SECURITY_BASELINE.md"
-  ),
-  path.join(
-    outputDir,
-    "docs/08-security/SECURITY_BASELINE.md"
-  ),
-  replacements
-);
+  // Security
+  ["templates/security/SECURITY_BASELINE.md", "docs/08-security/SECURITY_BASELINE.md"],
+  ["templates/security/THREAT_MODEL.md", "docs/08-security/THREAT_MODEL.md"],
+  ["templates/security/SECURITY_TEST_PLAN.md", "docs/08-security/SECURITY_TEST_PLAN.md"],
+  ["templates/security/RELEASE_SECURITY_GATE.md", "docs/08-security/RELEASE_SECURITY_GATE.md"],
 
-if (answers.isAI) {
+  // Quality
+  ["templates/quality/QUALITY_STRATEGY.md", "docs/10-quality/QUALITY_STRATEGY.md"],
+  ["templates/quality/TEST_STRATEGY.md", "docs/10-quality/TEST_STRATEGY.md"],
+  ["templates/quality/TEST_PLAN.md", "docs/10-quality/TEST_PLAN.md"],
+  ["templates/quality/E2E_TEST_PLAN.md", "docs/10-quality/E2E_TEST_PLAN.md"],
+  ["templates/quality/API_TEST_PLAN.md", "docs/10-quality/API_TEST_PLAN.md"],
+  ["templates/quality/ACCESSIBILITY_TEST_PLAN.md", "docs/10-quality/ACCESSIBILITY_TEST_PLAN.md"],
+  ["templates/quality/RELEASE_QUALITY_GATE.md", "docs/10-quality/RELEASE_QUALITY_GATE.md"],
+
+  // Performance
+  ["templates/performance/PERFORMANCE_BASELINE.md", "docs/11-performance/PERFORMANCE_BASELINE.md"],
+  ["templates/performance/PERFORMANCE_BUDGET.md", "docs/11-performance/PERFORMANCE_BUDGET.md"],
+  ["templates/performance/PERFORMANCE_TEST_PLAN.md", "docs/11-performance/PERFORMANCE_TEST_PLAN.md"],
+  ["templates/performance/PERFORMANCE_BACKLOG.md", "docs/11-performance/PERFORMANCE_BACKLOG.md"],
+
+  // Planning
+  ["templates/planning/ROADMAP.md", "docs/12-planning/ROADMAP.md"],
+  ["templates/planning/SPRINT_PLAN.md", "docs/12-planning/SPRINT_PLAN.md"],
+  ["templates/planning/MVP_DELIVERY_PLAN.md", "docs/12-planning/MVP_DELIVERY_PLAN.md"],
+  ["templates/planning/BACKLOG.md", "docs/12-planning/BACKLOG.md"],
+  ["templates/planning/DEPENDENCIES.md", "docs/12-planning/DEPENDENCIES.md"],
+  ["templates/planning/DECISION_LOG.md", "docs/12-planning/DECISION_LOG.md"],
+
+  // Business
+  ["templates/business/BUSINESS_MODEL.md", "docs/13-business/BUSINESS_MODEL.md"],
+  ["templates/business/PRICING.md", "docs/13-business/PRICING.md"],
+  ["templates/business/GO_TO_MARKET.md", "docs/13-business/GO_TO_MARKET.md"],
+  ["templates/business/EXPERIMENTS.md", "docs/13-business/EXPERIMENTS.md"],
+
+  // Operations
+  ["templates/operations/ENVIRONMENTS.md", "docs/14-operations/ENVIRONMENTS.md"],
+  ["templates/operations/DEPLOYMENT.md", "docs/14-operations/DEPLOYMENT.md"],
+  ["templates/operations/OBSERVABILITY.md", "docs/14-operations/OBSERVABILITY.md"],
+  ["templates/operations/INCIDENT_RESPONSE.md", "docs/14-operations/INCIDENT_RESPONSE.md"],
+  ["templates/operations/RUNBOOK.md", "docs/14-operations/RUNBOOK.md"]
+];
+
+for (const [template, destination] of baselineTemplates) {
   await renderTemplate(
-    path.join(blueprintRoot, "templates/ai/AI_ARCHITECTURE.md"),
-    path.join(outputDir, "docs/06-ai/AI_ARCHITECTURE.md"),
+    path.join(blueprintRoot, template),
+    path.join(outputDir, destination),
     replacements
   );
+}
 
-  await renderTemplate(
-    path.join(blueprintRoot, "templates/ai/AI_GUARDRAILS.md"),
-    path.join(outputDir, "docs/06-ai/AI_GUARDRAILS.md"),
-    replacements
+const conditionalTemplates = [];
+
+if (answers.isAI) {
+  conditionalTemplates.push(
+    ["templates/ai/AI_ARCHITECTURE.md", "docs/06-ai/AI_ARCHITECTURE.md"],
+    ["templates/ai/AI_GUARDRAILS.md", "docs/06-ai/AI_GUARDRAILS.md"]
   );
 }
 
@@ -270,117 +303,12 @@ if (
   answers.sensitiveData ||
   answers.regulated
 ) {
-  await renderTemplate(
-    path.join(blueprintRoot, "templates/privacy/PRIVACY_MODEL.md"),
-    path.join(outputDir, "docs/09-privacy-governance/PRIVACY_MODEL.md"),
-    replacements
+  conditionalTemplates.push(
+    ["templates/privacy/PRIVACY_MODEL.md", "docs/09-privacy-governance/PRIVACY_MODEL.md"]
   );
 }
 
-const baselineTemplates = [
-  [
-    "templates/research/MARKET_RESEARCH.md",
-    "docs/01-research/MARKET_RESEARCH.md"
-  ],
-  [
-    "templates/research/COMPETITOR_LANDSCAPE.md",
-    "docs/01-research/COMPETITOR_LANDSCAPE.md"
-  ],
-  [
-    "templates/research/USER_RESEARCH.md",
-    "docs/01-research/USER_RESEARCH.md"
-  ],
-  [
-    "templates/research/VALIDATION_PLAN.md",
-    "docs/01-research/VALIDATION_PLAN.md"
-  ],
-  [
-    "templates/research/VALIDATION_LOG.md",
-    "docs/01-research/VALIDATION_LOG.md"
-  ],
-
-  [
-    "templates/requirements/PRODUCT_REQUIREMENTS.md",
-    "docs/02-requirements/PRODUCT_REQUIREMENTS.md"
-  ],
-  [
-    "templates/requirements/FUNCTIONAL_REQUIREMENTS.md",
-    "docs/02-requirements/FUNCTIONAL_REQUIREMENTS.md"
-  ],
-  [
-    "templates/requirements/NON_FUNCTIONAL_REQUIREMENTS.md",
-    "docs/02-requirements/NON_FUNCTIONAL_REQUIREMENTS.md"
-  ],
-  [
-    "templates/requirements/USER_STORIES.md",
-    "docs/02-requirements/USER_STORIES.md"
-  ],
-  [
-    "templates/requirements/ACCEPTANCE_CRITERIA.md",
-    "docs/02-requirements/ACCEPTANCE_CRITERIA.md"
-  ],
-  [
-    "templates/requirements/TRACEABILITY_MATRIX.md",
-    "docs/02-requirements/TRACEABILITY_MATRIX.md"
-  ],
-
-  [
-    "templates/design/UX_PRINCIPLES.md",
-    "docs/03-design/UX_PRINCIPLES.md"
-  ],
-  [
-    "templates/design/USER_JOURNEYS.md",
-    "docs/03-design/USER_JOURNEYS.md"
-  ],
-  [
-    "templates/design/INFORMATION_ARCHITECTURE.md",
-    "docs/03-design/INFORMATION_ARCHITECTURE.md"
-  ],
-  [
-    "templates/design/DESIGN_SYSTEM.md",
-    "docs/03-design/DESIGN_SYSTEM.md"
-  ],
-  [
-    "templates/design/ACCESSIBILITY_REQUIREMENTS.md",
-    "docs/03-design/ACCESSIBILITY_REQUIREMENTS.md"
-  ],
-
-  [
-    "templates/domain/DOMAIN_MODEL.md",
-    "docs/04-domain/DOMAIN_MODEL.md"
-  ],
-  [
-    "templates/domain/BUSINESS_RULES.md",
-    "docs/04-domain/BUSINESS_RULES.md"
-  ],
-  [
-    "templates/domain/DECISION_RULES.md",
-    "docs/04-domain/DECISION_RULES.md"
-  ],
-  [
-    "templates/domain/SAFETY_BOUNDARIES.md",
-    "docs/04-domain/SAFETY_BOUNDARIES.md"
-  ],
-
-  [
-    "templates/data/DATA_DICTIONARY.md",
-    "docs/07-data/DATA_DICTIONARY.md"
-  ],
-  [
-    "templates/data/DATA_PROVENANCE.md",
-    "docs/07-data/DATA_PROVENANCE.md"
-  ],
-  [
-    "templates/data/DATA_RETENTION.md",
-    "docs/07-data/DATA_RETENTION.md"
-  ],
-  [
-    "templates/data/USER_DATA.md",
-    "docs/07-data/USER_DATA.md"
-  ]
-];
-
-for (const [template, destination] of baselineTemplates) {
+for (const [template, destination] of conditionalTemplates) {
   await renderTemplate(
     path.join(blueprintRoot, template),
     path.join(outputDir, destination),
