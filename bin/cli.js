@@ -2,7 +2,66 @@
 
 import inquirer from "inquirer";
 import chalk from "chalk";
+import fs from "fs-extra";
+import path from "path";
+import { fileURLToPath } from "url";
 import { generateProject } from "../scripts/generate-project.js";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+const blueprintRoot = path.resolve(__dirname, "..");
+
+const packageJson = await fs.readJson(
+  path.join(blueprintRoot, "package.json")
+);
+
+function printHelp() {
+  console.log();
+  console.log(chalk.bold("Collins Obasuyi Product Engineering Blueprint"));
+  console.log();
+  console.log("Usage:");
+  console.log("  collins-obasuyi-blueprint init [project-name]");
+  console.log();
+  console.log("Commands:");
+  console.log("  init       Create a new blueprint project");
+  console.log();
+  console.log("Options:");
+  console.log("  --help     Show help");
+  console.log("  --version  Show version");
+  console.log();
+}
+
+function printVersion() {
+  console.log(packageJson.version);
+}
+
+const args = process.argv.slice(2);
+
+if (args.includes("--help") || args.includes("-h")) {
+  printHelp();
+  process.exit(0);
+}
+
+if (args.includes("--version") || args.includes("-v")) {
+  printVersion();
+  process.exit(0);
+}
+
+const [command, ...rest] = args;
+
+if (!command) {
+  printHelp();
+  process.exit(0);
+}
+
+if (command !== "init") {
+  console.log();
+  console.error(chalk.red(`Unknown command: ${command}`));
+  printHelp();
+  process.exit(1);
+}
+
+const projectNameArg = rest[0];
 
 console.log();
 console.log(
@@ -13,8 +72,10 @@ console.log(
 );
 console.log();
 
-const answers = await inquirer.prompt([
-  {
+const prompts = [];
+
+if (!projectNameArg) {
+  prompts.push({
     type: "input",
     name: "projectName",
     message: "Project name?",
@@ -25,7 +86,13 @@ const answers = await inquirer.prompt([
 
       return true;
     }
-  },
+  });
+} else {
+  console.log(chalk.bold(`Project: ${projectNameArg}`));
+  console.log();
+}
+
+prompts.push(
   {
     type: "confirm",
     name: "isAI",
@@ -62,11 +129,15 @@ const answers = await inquirer.prompt([
     message: "Will it support mobile or PWA?",
     default: false
   }
-]);
+);
+
+const answers = await inquirer.prompt(prompts);
+
+const projectName = projectNameArg || answers.projectName;
 
 try {
   const result = await generateProject({
-    projectName: answers.projectName,
+    projectName,
     isAI: answers.isAI,
     sensitiveData: answers.sensitiveData,
     authentication: answers.authentication,
