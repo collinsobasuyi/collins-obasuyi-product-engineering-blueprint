@@ -1,0 +1,18 @@
+{
+  "blueprint": "Collins Obasuyi Product Engineering Blueprint",
+  "blueprintVersion": "0.1.0",
+  "generator": "collins-obasuyi-blueprint",
+  "createdAt": "2026-08-18T17:17:43.822Z",
+  "project": {
+    "name": "blueprint-template-test",
+    "slug": "blueprint-template-test"
+  },
+  "modules": {
+    "ai": true,
+    "sensitiveData": true,
+    "authentication": true,
+    "integrations": true,
+    "regulated": true,
+    "mobile": true
+  }
+}
