@@ -4,7 +4,7 @@
   "description": "A reusable product engineering blueprint for building secure, tested and production-ready software.",
   "type": "module",
   "bin": {
-    "collins-obasuyi-blueprint": "./bin/cli.js"
+    "collins-obasuyi-blueprint": "bin/cli.js"
   },
   "files": [
     "bin",
