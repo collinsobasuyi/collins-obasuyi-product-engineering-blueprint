@@ -139,12 +139,14 @@ const coreDirectories = [
   "docs/04-domain",
   "docs/05-architecture",
   "docs/07-data",
+    "docs/08-security",
   "docs/10-quality",
   "docs/11-performance",
   "docs/12-planning",
   "docs/13-business",
   "docs/14-operations",
-  "docs/15-evidence/releases"
+  "docs/15-evidence/releases",
+"docs/15-evidence/security"
 ];
 
 for (const directory of coreDirectories) {
@@ -163,20 +165,6 @@ if (answers.isAI) {
   );
 }
 
-if (
-  answers.authentication ||
-  answers.isAI ||
-  answers.sensitiveData ||
-  answers.integrations
-) {
-  await fs.ensureDir(
-    path.join(outputDir, "docs/08-security")
-  );
-
-  await fs.ensureDir(
-    path.join(outputDir, "docs/15-evidence/security")
-  );
-}
 
 if (
   answers.sensitiveData ||
@@ -252,18 +240,17 @@ await renderTemplate(
   replacements
 );
 
-if (
-  answers.authentication ||
-  answers.isAI ||
-  answers.sensitiveData ||
-  answers.integrations
-) {
-  await renderTemplate(
-    path.join(blueprintRoot, "templates/security/SECURITY_BASELINE.md"),
-    path.join(outputDir, "docs/08-security/SECURITY_BASELINE.md"),
-    replacements
-  );
-}
+await renderTemplate(
+  path.join(
+    blueprintRoot,
+    "templates/security/SECURITY_BASELINE.md"
+  ),
+  path.join(
+    outputDir,
+    "docs/08-security/SECURITY_BASELINE.md"
+  ),
+  replacements
+);
 
 if (answers.isAI) {
   await renderTemplate(
@@ -290,6 +277,117 @@ if (
   );
 }
 
+const baselineTemplates = [
+  [
+    "templates/research/MARKET_RESEARCH.md",
+    "docs/01-research/MARKET_RESEARCH.md"
+  ],
+  [
+    "templates/research/COMPETITOR_LANDSCAPE.md",
+    "docs/01-research/COMPETITOR_LANDSCAPE.md"
+  ],
+  [
+    "templates/research/USER_RESEARCH.md",
+    "docs/01-research/USER_RESEARCH.md"
+  ],
+  [
+    "templates/research/VALIDATION_PLAN.md",
+    "docs/01-research/VALIDATION_PLAN.md"
+  ],
+  [
+    "templates/research/VALIDATION_LOG.md",
+    "docs/01-research/VALIDATION_LOG.md"
+  ],
+
+  [
+    "templates/requirements/PRODUCT_REQUIREMENTS.md",
+    "docs/02-requirements/PRODUCT_REQUIREMENTS.md"
+  ],
+  [
+    "templates/requirements/FUNCTIONAL_REQUIREMENTS.md",
+    "docs/02-requirements/FUNCTIONAL_REQUIREMENTS.md"
+  ],
+  [
+    "templates/requirements/NON_FUNCTIONAL_REQUIREMENTS.md",
+    "docs/02-requirements/NON_FUNCTIONAL_REQUIREMENTS.md"
+  ],
+  [
+    "templates/requirements/USER_STORIES.md",
+    "docs/02-requirements/USER_STORIES.md"
+  ],
+  [
+    "templates/requirements/ACCEPTANCE_CRITERIA.md",
+    "docs/02-requirements/ACCEPTANCE_CRITERIA.md"
+  ],
+  [
+    "templates/requirements/TRACEABILITY_MATRIX.md",
+    "docs/02-requirements/TRACEABILITY_MATRIX.md"
+  ],
+
+  [
+    "templates/design/UX_PRINCIPLES.md",
+    "docs/03-design/UX_PRINCIPLES.md"
+  ],
+  [
+    "templates/design/USER_JOURNEYS.md",
+    "docs/03-design/USER_JOURNEYS.md"
+  ],
+  [
+    "templates/design/INFORMATION_ARCHITECTURE.md",
+    "docs/03-design/INFORMATION_ARCHITECTURE.md"
+  ],
+  [
+    "templates/design/DESIGN_SYSTEM.md",
+    "docs/03-design/DESIGN_SYSTEM.md"
+  ],
+  [
+    "templates/design/ACCESSIBILITY_REQUIREMENTS.md",
+    "docs/03-design/ACCESSIBILITY_REQUIREMENTS.md"
+  ],
+
+  [
+    "templates/domain/DOMAIN_MODEL.md",
+    "docs/04-domain/DOMAIN_MODEL.md"
+  ],
+  [
+    "templates/domain/BUSINESS_RULES.md",
+    "docs/04-domain/BUSINESS_RULES.md"
+  ],
+  [
+    "templates/domain/DECISION_RULES.md",
+    "docs/04-domain/DECISION_RULES.md"
+  ],
+  [
+    "templates/domain/SAFETY_BOUNDARIES.md",
+    "docs/04-domain/SAFETY_BOUNDARIES.md"
+  ],
+
+  [
+    "templates/data/DATA_DICTIONARY.md",
+    "docs/07-data/DATA_DICTIONARY.md"
+  ],
+  [
+    "templates/data/DATA_PROVENANCE.md",
+    "docs/07-data/DATA_PROVENANCE.md"
+  ],
+  [
+    "templates/data/DATA_RETENTION.md",
+    "docs/07-data/DATA_RETENTION.md"
+  ],
+  [
+    "templates/data/USER_DATA.md",
+    "docs/07-data/USER_DATA.md"
+  ]
+];
+
+for (const [template, destination] of baselineTemplates) {
+  await renderTemplate(
+    path.join(blueprintRoot, template),
+    path.join(outputDir, destination),
+    replacements
+  );
+}
+
 console.log();
 console.log(chalk.green(`✓ Created project: ${slug}`));
 console.log(chalk.green("✓ Created .blueprint.json"));
@@ -301,14 +399,9 @@ if (answers.isAI) {
   console.log(chalk.green("✓ Enabled AI documentation"));
 }
 
-if (
-  answers.authentication ||
-  answers.isAI ||
-  answers.sensitiveData ||
-  answers.integrations
-) {
-  console.log(chalk.green("✓ Enabled security documentation"));
-}
+console.log(
+  chalk.green("✓ Enabled baseline security documentation")
+);
 
 if (
   answers.sensitiveData ||
