@@ -286,6 +286,25 @@ const baselineTemplates = [
   ]
 ];
 
+const checklistTemplates = [
+  [
+    "checklists/project-start.md",
+    "checklists/project-start.md"
+  ],
+  [
+    "checklists/feature-ready.md",
+    "checklists/feature-ready.md"
+  ],
+  [
+    "checklists/pre-release.md",
+    "checklists/pre-release.md"
+  ],
+  [
+    "checklists/production-readiness.md",
+    "checklists/production-readiness.md"
+  ]
+];
+
 export async function generateProject({
   projectName,
   isAI = false,
@@ -382,6 +401,20 @@ export async function generateProject({
   );
 
   for (const [template, destination] of baselineTemplates) {
+    await renderTemplate(
+      path.join(
+        blueprintRoot,
+        template
+      ),
+      path.join(
+        outputDir,
+        destination
+      ),
+      replacements
+    );
+  }
+
+  for (const [template, destination] of checklistTemplates) {
     await renderTemplate(
       path.join(
         blueprintRoot,

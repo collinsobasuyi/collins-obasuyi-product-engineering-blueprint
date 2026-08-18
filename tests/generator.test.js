@@ -94,6 +94,44 @@ test("generates a simple project with baseline documentation", async () => {
   }
 });
 
+test("generates top-level operational checklists", async () => {
+  const tempDir = await fs.mkdtemp(
+    path.join(
+      os.tmpdir(),
+      "collins-blueprint-"
+    )
+  );
+
+  try {
+    await generateProject({
+      projectName: "Checklist Test",
+      cwd: tempDir
+    });
+
+    const checklistsDir = path.join(
+      tempDir,
+      "checklist-test",
+      "checklists"
+    );
+
+    for (const file of [
+      "project-start.md",
+      "feature-ready.md",
+      "pre-release.md",
+      "production-readiness.md"
+    ]) {
+      assert.equal(
+        await fs.pathExists(
+          path.join(checklistsDir, file)
+        ),
+        true
+      );
+    }
+  } finally {
+    await fs.remove(tempDir);
+  }
+});
+
 test("generates AI documentation only when AI is enabled", async () => {
   const tempDir = await fs.mkdtemp(
     path.join(

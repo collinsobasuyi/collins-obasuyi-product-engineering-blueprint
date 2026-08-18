@@ -30,6 +30,17 @@
   ],
   "author": "Collins Obasuyi",
   "license": "MIT",
+  "engines": {
+    "node": ">=20"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/collinsobasuyi/collins-obasuyi-product-engineering-blueprint.git"
+  },
+  "bugs": {
+    "url": "https://github.com/collinsobasuyi/collins-obasuyi-product-engineering-blueprint/issues"
+  },
+  "homepage": "https://github.com/collinsobasuyi/collins-obasuyi-product-engineering-blueprint#readme",
   "dependencies": {
     "chalk": "^6.0.0",
     "fs-extra": "^11.4.0",
