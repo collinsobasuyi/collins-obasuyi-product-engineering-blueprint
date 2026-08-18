@@ -1,0 +1,24 @@
+{
+  "name": "collins-obasuyi-blueprint",
+  "version": "0.1.0",
+  "description": "A reusable product engineering blueprint for building secure, tested and production-ready software.",
+  "type": "module",
+  "bin": {
+    "collins-obasuyi-blueprint": "./bin/cli.js"
+  },
+  "scripts": {
+    "start": "node ./bin/cli.js",
+    "dev": "node ./bin/cli.js"
+  },
+  "keywords": [
+    "product-engineering",
+    "ai-development",
+    "software-blueprint",
+    "security",
+    "quality-engineering",
+    "vibe-coding",
+    "product-development"
+  ],
+  "author": "Collins Obasuyi",
+  "license": "MIT"
+}
