@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.3.1 - 2026-08-19
+
+### Added
+
+- `## Technology choices` section in `SYSTEM_ARCHITECTURE.md` (language, frameworks, database, hosting, key libraries) — previously nothing in the blueprint captured this, despite `AGENTS.md` telling contributors to read the docs before implementing anything.
+
+### Changed
+
+- `examples/acmepay`'s completed `SYSTEM_ARCHITECTURE.md` filled in with a real Technology choices section, so the flagship example stays consistent with the current template.
+
 ## 0.3.0 - 2026-08-19
 
 ### Added
