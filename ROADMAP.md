@@ -27,7 +27,7 @@ Generate a project-specific engineering foundation from six interactive question
 - `.blueprint.json` project configuration
 - Published to npm, CI on Node 20/22, automated generator tests, flagship AcmePay example
 
-### v0.2 — CHECK
+### v0.2 — CHECK ✓ Shipped
 
 Answer the question every user has immediately after `init`: **"okay, what do I actually need to do now?"**
 

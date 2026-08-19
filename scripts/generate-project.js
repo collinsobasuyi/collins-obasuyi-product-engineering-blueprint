@@ -43,7 +43,11 @@ async function renderTemplateContentInternal(
   return content;
 }
 
-export const blueprintVersion = "0.1.0";
+const packageJson = await fs.readJson(
+  path.join(blueprintRoot, "package.json")
+);
+
+export const blueprintVersion = packageJson.version;
 
 export function getBlueprintRoot() {
   return blueprintRoot;
@@ -410,13 +414,13 @@ export async function generateProject({
   const replacements = {
     PROJECT_NAME: projectName,
     PROJECT_SLUG: slug,
-    BLUEPRINT_VERSION: "0.1.0",
+    BLUEPRINT_VERSION: blueprintVersion,
     CREATED_DATE: createdDate
   };
 
   const config = {
     blueprint: "Collins Obasuyi Product Engineering Blueprint",
-    blueprintVersion: "0.1.0",
+    blueprintVersion,
     generator: "collins-obasuyi-blueprint",
     createdAt: new Date().toISOString(),
 
