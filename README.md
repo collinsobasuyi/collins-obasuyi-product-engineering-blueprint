@@ -178,6 +178,29 @@ READINESS: 12%
 
 That's the real output against [`examples/acmepay/`](examples/acmepay/) — the 8 completed documents show `✓`, the untouched majority correctly show `✗`, and `RELEASE_SECURITY_GATE.md`'s one intentionally-unchecked gate item shows up as a genuine unresolved item rather than being silently missed. A small fixed set of release-critical documents (security baseline, threat model, release gates, privacy model) count as **blockers** when incomplete, and `check` exits non-zero when any exist — so it can gate CI later, not just print a report.
 
+## Find inconsistencies
+
+`check` tells you what's filled in. `review` tells you whether what's filled in actually holds together — still with zero LLM involvement. It's structural, not semantic: does a functional requirement you've started writing still have a `TODO` where it should link to a product requirement or acceptance criteria? Does a threat you've documented have no mitigation? Does `SYSTEM_ARCHITECTURE.md` describe real login/session behaviour even though you answered "no authentication required" at `init`?
+
+```text
+$ npx collins-obasuyi-blueprint review
+
+Collins Obasuyi Product Engineering Blueprint
+
+Project: orderflow
+
+REVIEW
+
+⚠ FR-001 has no linked product requirement.
+⚠ FR-001 has no linked acceptance criteria.
+⚠ TM-001 has no documented mitigation.
+⚠ .blueprint.json says authentication: false, but docs/05-architecture/SYSTEM_ARCHITECTURE.md's Authentication section describes real authentication behaviour ("password") — worth reconciling.
+
+4 findings
+```
+
+That's real output too, from a small demo project set up to hit each rule deliberately — `review` only flags a linkage field once you've actually started that entry (an untouched template block is `check`'s job, not `review`'s, so a blank project produces zero findings, not a wall of noise). Run it clean and it just says `✓ No consistency issues found.` — which is exactly what it says against `examples/acmepay/`, since AcmePay's threat model already has every mitigation filled in.
+
 ## Philosophy
 
 - Evidence over assumption. A claim like "it's secure" or "it's tested" should point at a document, not a feeling.
@@ -189,7 +212,7 @@ That's the real output against [`examples/acmepay/`](examples/acmepay/) — the 
 ## Project layout
 
 - `bin/` — CLI entry point
-- `scripts/` — the generation and check engines (`generateProject`, `createSlug`, `checkProject`)
+- `scripts/` — the generation, check, and review engines (`generateProject`, `createSlug`, `checkProject`, `reviewProject`)
 - `templates/` — the ~60 baseline document templates
 - `checklists/` — the operational checklists copied into every generated project
 - `examples/` — a completed example project (see above)
@@ -197,7 +220,7 @@ That's the real output against [`examples/acmepay/`](examples/acmepay/) — the 
 
 ## Roadmap
 
-`init` is done and published. `check` is built and tested on `main`, ahead of a v0.2 release. `review`, `assist`, `compliance`, and `evolve` are planned after it, in that order, deliberately — see [ROADMAP.md](ROADMAP.md) for what each version means and why they're sequenced this way.
+`init` and `check` are done and published. `review` is built and tested on `main`, ahead of a v0.3 release. `assist`, `compliance`, and `evolve` are planned after it, in that order, deliberately — see [ROADMAP.md](ROADMAP.md) for what each version means and why they're sequenced this way.
 
 ## Contributing
 

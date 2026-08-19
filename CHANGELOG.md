@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.3.0 - 2026-08-19
+
+### Added
+
+- `review` command (`collins-obasuyi-blueprint review [path]`): finds cross-document inconsistencies with zero LLM involvement.
+- Field-linkage checks for `FR-XXX` blocks in `FUNCTIONAL_REQUIREMENTS.md`, `AC-XXX` in `ACCEPTANCE_CRITERIA.md`, and `TM-XXX` in `THREAT_MODEL.md` — flags a started-but-unlinked entry (its `Related product requirement`, `Acceptance criteria`, `Related requirement`, or `Mitigation` field still `TODO`), without flagging entries nobody has touched yet.
+- Config/content consistency checks: sensitive-data keywords appearing in the docs despite `sensitiveData`/`regulated` both being `false`; real authentication content in `SYSTEM_ARCHITECTURE.md` despite `authentication: false`.
+- `review` example wired into the README, using real (not mocked) output.
+
 ## 0.2.0 - 2026-08-19
 
 ### Added

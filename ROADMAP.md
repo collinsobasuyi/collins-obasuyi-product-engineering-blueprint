@@ -41,7 +41,7 @@ npx collins-obasuyi-blueprint check
 - Zero LLM dependency — this is pattern-matching against the blueprint's own template structure (TODO markers, empty required sections, unchecked gate items), not a model call.
 - This is the highest-leverage next feature: it turns the tool from a one-time generator into an ongoing engineering control, and it's the foundation `review` and `assist` build on.
 
-### v0.3 — REVIEW
+### v0.3 — REVIEW ✓ Shipped
 
 Go beyond "is this filled in" to "does this actually make sense together."
 
