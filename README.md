@@ -148,6 +148,10 @@ Everything else in that example is left as the generator produced it, so you can
 - `examples/` — a completed example project (see above)
 - `tests/` — automated generator tests (`npm test`)
 
+## Roadmap
+
+`init` is done. `check`, `review`, `assist`, `compliance`, and `evolve` are planned in that order, deliberately — see [ROADMAP.md](ROADMAP.md) for what each version means and why they're sequenced this way.
+
 ## Contributing
 
 See [CONTRIBUTING.md](CONTRIBUTING.md).
