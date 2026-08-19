@@ -131,6 +131,53 @@ The blueprint is the fixed structure; the AI (or you) does the thinking that fil
 
 Everything else in that example is left as the generator produced it, so you can see the blank-template-to-completed-document contrast directly.
 
+## Check your readiness
+
+`init` generates the structure. `check` tells you how much of it is actually done — with no LLM involved. Every document's source template is re-rendered with your project's own values and diffed against the real file: untouched means not started, edited-but-still-has-`TODO`-text-or-unchecked-boxes means in progress, edited-clean means complete. That's it — no guessing at meaning, just an honest diff.
+
+```text
+$ npx collins-obasuyi-blueprint check examples/acmepay
+
+Collins Obasuyi Product Engineering Blueprint
+
+Project: acmepay
+
+PRODUCT
+✓ Product Overview
+✓ MVP Scope
+✗ Product Principles not started
+
+...
+
+ARCHITECTURE
+✓ System Architecture
+
+AI
+✗ AI Architecture not started
+✓ AI Guardrails
+
+...
+
+SECURITY
+✗ Security Baseline not started
+✓ Threat Model
+✗ Security Test Plan not started
+⚠ Release Security Gate contains 1 TODO
+
+PRIVACY GOVERNANCE
+✓ Privacy Model
+
+...
+
+READINESS: 12%
+
+3 blockers
+57 incomplete documents
+1 unresolved TODO
+```
+
+That's the real output against [`examples/acmepay/`](examples/acmepay/) — the 8 completed documents show `✓`, the untouched majority correctly show `✗`, and `RELEASE_SECURITY_GATE.md`'s one intentionally-unchecked gate item shows up as a genuine unresolved item rather than being silently missed. A small fixed set of release-critical documents (security baseline, threat model, release gates, privacy model) count as **blockers** when incomplete, and `check` exits non-zero when any exist — so it can gate CI later, not just print a report.
+
 ## Philosophy
 
 - Evidence over assumption. A claim like "it's secure" or "it's tested" should point at a document, not a feeling.
@@ -142,7 +189,7 @@ Everything else in that example is left as the generator produced it, so you can
 ## Project layout
 
 - `bin/` — CLI entry point
-- `scripts/` — the generation engine (`generateProject`, `createSlug`)
+- `scripts/` — the generation and check engines (`generateProject`, `createSlug`, `checkProject`)
 - `templates/` — the ~60 baseline document templates
 - `checklists/` — the operational checklists copied into every generated project
 - `examples/` — a completed example project (see above)
@@ -150,7 +197,7 @@ Everything else in that example is left as the generator produced it, so you can
 
 ## Roadmap
 
-`init` is done. `check`, `review`, `assist`, `compliance`, and `evolve` are planned in that order, deliberately — see [ROADMAP.md](ROADMAP.md) for what each version means and why they're sequenced this way.
+`init` is done and published. `check` is built and tested on `main`, ahead of a v0.2 release. `review`, `assist`, `compliance`, and `evolve` are planned after it, in that order, deliberately — see [ROADMAP.md](ROADMAP.md) for what each version means and why they're sequenced this way.
 
 ## Contributing
 
