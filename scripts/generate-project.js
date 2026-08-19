@@ -12,14 +12,10 @@ async function renderTemplate(
   destinationPath,
   replacements
 ) {
-  let content = await fs.readFile(templatePath, "utf8");
-
-  for (const [key, value] of Object.entries(replacements)) {
-    content = content.replaceAll(
-      `{{${key}}}`,
-      String(value)
-    );
-  }
+  const content = await renderTemplateContentInternal(
+    templatePath,
+    replacements
+  );
 
   await fs.ensureDir(
     path.dirname(destinationPath)
@@ -31,6 +27,38 @@ async function renderTemplate(
   );
 }
 
+async function renderTemplateContentInternal(
+  templatePath,
+  replacements
+) {
+  let content = await fs.readFile(templatePath, "utf8");
+
+  for (const [key, value] of Object.entries(replacements)) {
+    content = content.replaceAll(
+      `{{${key}}}`,
+      String(value)
+    );
+  }
+
+  return content;
+}
+
+export const blueprintVersion = "0.1.0";
+
+export function getBlueprintRoot() {
+  return blueprintRoot;
+}
+
+export async function renderTemplateContent(
+  templatePath,
+  replacements
+) {
+  return renderTemplateContentInternal(
+    templatePath,
+    replacements
+  );
+}
+
 export function createSlug(projectName) {
   return projectName
     .trim()
@@ -39,7 +67,18 @@ export function createSlug(projectName) {
     .replace(/^-|-$/g, "");
 }
 
-const baselineTemplates = [
+export const coreTemplates = [
+  [
+    "templates/core/AGENTS.md",
+    "AGENTS.md"
+  ],
+  [
+    "templates/core/README.md",
+    "README.md"
+  ]
+];
+
+export const baselineTemplates = [
   [
     "templates/product/PRODUCT_OVERVIEW.md",
     "docs/00-product/PRODUCT_OVERVIEW.md"
@@ -286,7 +325,7 @@ const baselineTemplates = [
   ]
 ];
 
-const checklistTemplates = [
+export const checklistTemplates = [
   [
     "checklists/project-start.md",
     "checklists/project-start.md"
@@ -303,6 +342,34 @@ const checklistTemplates = [
     "checklists/production-readiness.md",
     "checklists/production-readiness.md"
   ]
+];
+
+export const conditionalTemplateGroups = [
+  {
+    id: "ai",
+    isEnabled: (modules) => Boolean(modules.ai),
+    templates: [
+      [
+        "templates/ai/AI_ARCHITECTURE.md",
+        "docs/06-ai/AI_ARCHITECTURE.md"
+      ],
+      [
+        "templates/ai/AI_GUARDRAILS.md",
+        "docs/06-ai/AI_GUARDRAILS.md"
+      ]
+    ]
+  },
+  {
+    id: "privacy",
+    isEnabled: (modules) =>
+      Boolean(modules.sensitiveData) || Boolean(modules.regulated),
+    templates: [
+      [
+        "templates/privacy/PRIVACY_MODEL.md",
+        "docs/09-privacy-governance/PRIVACY_MODEL.md"
+      ]
+    ]
+  }
 ];
 
 export async function generateProject({
@@ -376,29 +443,19 @@ export async function generateProject({
     { spaces: 2 }
   );
 
-  await renderTemplate(
-    path.join(
-      blueprintRoot,
-      "templates/core/AGENTS.md"
-    ),
-    path.join(
-      outputDir,
-      "AGENTS.md"
-    ),
-    replacements
-  );
-
-  await renderTemplate(
-    path.join(
-      blueprintRoot,
-      "templates/core/README.md"
-    ),
-    path.join(
-      outputDir,
-      "README.md"
-    ),
-    replacements
-  );
+  for (const [template, destination] of coreTemplates) {
+    await renderTemplate(
+      path.join(
+        blueprintRoot,
+        template
+      ),
+      path.join(
+        outputDir,
+        destination
+      ),
+      replacements
+    );
+  }
 
   for (const [template, destination] of baselineTemplates) {
     await renderTemplate(
@@ -428,50 +485,32 @@ export async function generateProject({
     );
   }
 
+  for (const group of conditionalTemplateGroups) {
+    if (!group.isEnabled(config.modules)) {
+      continue;
+    }
+
+    for (const [template, destination] of group.templates) {
+      await renderTemplate(
+        path.join(
+          blueprintRoot,
+          template
+        ),
+        path.join(
+          outputDir,
+          destination
+        ),
+        replacements
+      );
+    }
+  }
+
   if (isAI) {
-    await renderTemplate(
-      path.join(
-        blueprintRoot,
-        "templates/ai/AI_ARCHITECTURE.md"
-      ),
-      path.join(
-        outputDir,
-        "docs/06-ai/AI_ARCHITECTURE.md"
-      ),
-      replacements
-    );
-
-    await renderTemplate(
-      path.join(
-        blueprintRoot,
-        "templates/ai/AI_GUARDRAILS.md"
-      ),
-      path.join(
-        outputDir,
-        "docs/06-ai/AI_GUARDRAILS.md"
-      ),
-      replacements
-    );
-
     await fs.ensureDir(
       path.join(
         outputDir,
         "docs/15-evidence/ai-evaluations"
       )
-    );
-  }
-
-  if (sensitiveData || regulated) {
-    await renderTemplate(
-      path.join(
-        blueprintRoot,
-        "templates/privacy/PRIVACY_MODEL.md"
-      ),
-      path.join(
-        outputDir,
-        "docs/09-privacy-governance/PRIVACY_MODEL.md"
-      ),
-      replacements
     );
   }
 
