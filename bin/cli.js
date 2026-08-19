@@ -7,6 +7,7 @@ import path from "path";
 import { fileURLToPath } from "url";
 import { generateProject } from "../scripts/generate-project.js";
 import { checkProject } from "../scripts/check-project.js";
+import { reviewProject } from "../scripts/review-project.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -23,10 +24,12 @@ function printHelp() {
   console.log("Usage:");
   console.log("  collins-obasuyi-blueprint init [project-name]");
   console.log("  collins-obasuyi-blueprint check [path]");
+  console.log("  collins-obasuyi-blueprint review [path]");
   console.log();
   console.log("Commands:");
   console.log("  init       Create a new blueprint project");
   console.log("  check      Report completeness and readiness of a blueprint project");
+  console.log("  review     Find cross-document inconsistencies in a blueprint project");
   console.log();
   console.log("Options:");
   console.log("  --help     Show help");
@@ -237,6 +240,48 @@ async function runCheck(rest) {
   }
 }
 
+async function runReview(rest) {
+  const targetDir = rest[0]
+    ? path.resolve(process.cwd(), rest[0])
+    : process.cwd();
+
+  try {
+    const report = await reviewProject({ cwd: targetDir });
+
+    console.log();
+    console.log(
+      chalk.bold("Collins Obasuyi Product Engineering Blueprint")
+    );
+    console.log();
+    console.log(chalk.bold(`Project: ${report.project.name}`));
+    console.log();
+    console.log(chalk.bold("REVIEW"));
+    console.log();
+
+    if (report.findings.length === 0) {
+      console.log(chalk.green("✓ No consistency issues found."));
+    } else {
+      for (const finding of report.findings) {
+        console.log(chalk.yellow(`⚠ ${finding.message}`));
+      }
+    }
+
+    console.log();
+    console.log(pluralize(report.summary.totalFindings, "finding"));
+    console.log();
+
+    process.exitCode = report.summary.totalFindings > 0 ? 1 : 0;
+  } catch (error) {
+    console.log();
+
+    console.error(
+      chalk.red(error.message)
+    );
+
+    process.exitCode = 1;
+  }
+}
+
 const args = process.argv.slice(2);
 
 if (args.includes("--help") || args.includes("-h")) {
@@ -260,6 +305,8 @@ if (command === "init") {
   await runInit(rest);
 } else if (command === "check") {
   await runCheck(rest);
+} else if (command === "review") {
+  await runReview(rest);
 } else {
   console.log();
   console.error(chalk.red(`Unknown command: ${command}`));
