@@ -30,6 +30,15 @@ TODO
 
 TODO if applicable.
 
+## Technology choices
+
+- **Language(s):** TODO
+- **Frontend framework:** TODO
+- **Backend framework:** TODO
+- **Database:** TODO
+- **Hosting / deployment target:** TODO
+- **Key libraries or services:** TODO
+
 ## Data flow
 
 Describe the main data flow through the system.

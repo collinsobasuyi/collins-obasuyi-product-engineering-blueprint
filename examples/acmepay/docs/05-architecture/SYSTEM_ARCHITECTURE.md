@@ -38,6 +38,15 @@ Business users authenticate via email + password with mandatory MFA for any user
 
 A third-party document-extraction/LLM provider is used for two narrow tasks: (1) structured field extraction from invoice documents, and (2) anomaly explanation in plain language. The AI provider never has direct access to banking credentials, and its output is never used to initiate a payment without matching against system-of-record data first (see AI_GUARDRAILS.md).
 
+## Technology choices
+
+- **Language(s):** TypeScript across frontend and backend.
+- **Frontend framework:** Next.js (server-rendered), Tailwind CSS.
+- **Backend framework:** Node.js services behind an API gateway, deployed independently per service (ingestion, extraction & matching, approval, payment, audit).
+- **Database:** PostgreSQL, with row-level tenant isolation; the audit log lives in its own append-only table.
+- **Hosting / deployment target:** Managed container platform (e.g. a cloud provider's container service), one region per customer's contracted jurisdiction per docs/09-privacy-governance/PRIVACY_MODEL.md.
+- **Key libraries or services:** Third-party document-extraction/LLM API (see AI services above), banking-rail partner SDK, QuickBooks Online OAuth2 client.
+
 ## Data flow
 
 Invoice file → ingestion service (stores original, enqueues job) → extraction & matching service (calls AI provider, writes structured invoice record + anomaly flags) → approval service (surfaces to preparer/approver, records decision) → payment service (initiates ACH transfer, polls settlement status) → accounting integration (writes payment back to QuickBooks) → audit service (records every step).
