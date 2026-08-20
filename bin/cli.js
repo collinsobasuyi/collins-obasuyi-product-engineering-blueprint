@@ -12,7 +12,8 @@ import {
   ASSISTABLE_DOCUMENTS,
   loadAssistTarget,
   buildAssistPrompt,
-  writeAssistDraft
+  writeAssistDraft,
+  findMissingSections
 } from "../scripts/assist-project.js";
 import { getConfiguredProvider } from "../scripts/providers/index.js";
 
@@ -496,6 +497,25 @@ async function runAssist(rest) {
       `✓ Draft written to ${path.relative(targetDir, target.draftPath)}`
     )
   );
+
+  const missingSections = findMissingSections(
+    target.templateContent,
+    draftContent
+  );
+
+  if (missingSections.length > 0) {
+    console.log();
+    console.log(
+      chalk.yellow(
+        "⚠ The draft is missing section(s) the template expects -- review carefully:"
+      )
+    );
+
+    for (const heading of missingSections) {
+      console.log(chalk.yellow(`  ${heading}`));
+    }
+  }
+
   console.log();
   console.log(
     "This is a draft, not a decision. Review it, then replace the original"

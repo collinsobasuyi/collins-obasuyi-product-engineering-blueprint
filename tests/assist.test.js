@@ -10,7 +10,8 @@ import {
   resolveAssistSpec,
   loadAssistTarget,
   buildAssistPrompt,
-  writeAssistDraft
+  writeAssistDraft,
+  findMissingSections
 } from "../scripts/assist-project.js";
 import { getConfiguredProvider } from "../scripts/providers/index.js";
 
@@ -316,11 +317,32 @@ test("buildAssistPrompt includes the template, enabled modules, and context docu
       const { system, prompt } = buildAssistPrompt(target);
 
       assert.match(system, /Fill in the provided/);
+      assert.match(system, /do not repeat, quote, summarise, or append/i);
       assert.match(prompt, /Modules enabled: .*ai/);
       assert.match(prompt, /## Template to fill in/);
       assert.match(prompt, /## Project context/);
       assert.match(prompt, /### docs\/00-product\/PRODUCT_OVERVIEW\.md/);
+      assert.match(prompt, /- ## Core rules/);
+      assert.match(prompt, /- ## Evaluation/);
     }
+  );
+});
+
+test("findMissingSections returns nothing when every heading is present", () => {
+  const template = "## Purpose\n\nTODO\n\n## Problem\n\nTODO\n";
+  const draft = "## Purpose\n\nReal content.\n\n## Problem\n\nMore real content.\n";
+
+  assert.deepEqual(findMissingSections(template, draft), []);
+});
+
+test("findMissingSections reports headings dropped from the draft", () => {
+  const template =
+    "## Purpose\n\nTODO\n\n## Value proposition\n\nTODO\n\n## Current stage\n\nTODO\n";
+  const draft = "## Purpose\n\nReal content.\n\n## Current stage\n\nDiscovery\n";
+
+  assert.deepEqual(
+    findMissingSections(template, draft),
+    ["## Value proposition"]
   );
 });
 

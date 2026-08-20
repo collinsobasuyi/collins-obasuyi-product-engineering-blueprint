@@ -187,6 +187,10 @@ export async function loadAssistTarget({ cwd = process.cwd(), documentName }) {
   };
 }
 
+function extractTopLevelHeadings(content) {
+  return (content.match(/^## .+$/gm) || []).map((line) => line.trim());
+}
+
 export function buildAssistPrompt({ config, templateContent, contextDocuments }) {
   const system = [
     "You are drafting a single engineering document for a software project.",
@@ -196,8 +200,12 @@ export function buildAssistPrompt({ config, templateContent, contextDocuments })
     "Only use facts supported by the provided project context. Where the " +
       "context does not cover something, leave a clearly-marked placeholder " +
       "rather than inventing specifics.",
-    "Do not add commentary, explanation, or markdown code fences around your " +
-      "answer. Output only the completed document content."
+    "Your response must contain ONLY the filled-in document, starting directly " +
+      "with its top-level '#' heading. Do not add commentary, explanation, or " +
+      "markdown code fences. Do not repeat, quote, summarise, or append the " +
+      "project context or the template instructions -- they are input for you " +
+      "to draw from, not content to include in the output. The document ends " +
+      "where the template's own last section ends; add no sections beyond it."
   ].join(" ");
 
   const enabledModules = Object.entries(config.modules)
@@ -215,16 +223,36 @@ export function buildAssistPrompt({ config, templateContent, contextDocuments })
     `Project: ${config.project.name}`,
     `Modules enabled: ${enabledModules.length > 0 ? enabledModules.join(", ") : "none"}`,
     "",
+    "## Project context (input only -- do not include this section, or any " +
+      "part of it, in your output)",
+    "",
+    contextSection,
+    "",
     "## Template to fill in",
     "",
     templateContent,
     "",
-    "## Project context",
+    "## Your task",
     "",
-    contextSection
+    "Output the template above with every TODO and underspecified section " +
+      "filled in using the project context. Respond with nothing but that " +
+      "completed document -- no preamble, no repeated context, no extra " +
+      "sections.",
+    "",
+    "Your output must contain every one of these section headings, in this " +
+      "exact order, and no others:",
+    "",
+    ...extractTopLevelHeadings(templateContent).map((heading) => `- ${heading}`)
   ].join("\n");
 
   return { system, prompt };
+}
+
+export function findMissingSections(templateContent, draftContent) {
+  const expected = extractTopLevelHeadings(templateContent);
+  const actual = new Set(extractTopLevelHeadings(draftContent));
+
+  return expected.filter((heading) => !actual.has(heading));
 }
 
 export async function writeAssistDraft({ draftPath, content }) {
