@@ -20,6 +20,7 @@ import {
   complianceProject,
   SUPPORTED_STANDARDS
 } from "../scripts/compliance-project.js";
+import { upgradeProject } from "../scripts/upgrade-project.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -39,6 +40,7 @@ function printHelp() {
   console.log("  collins-obasuyi-blueprint review [path]");
   console.log("  collins-obasuyi-blueprint assist <document> [path]");
   console.log("  collins-obasuyi-blueprint compliance --standard=<standard> [path]");
+  console.log("  collins-obasuyi-blueprint upgrade [path]");
   console.log();
   console.log("Commands:");
   console.log("  init        Create a new blueprint project");
@@ -46,6 +48,7 @@ function printHelp() {
   console.log("  review      Find cross-document inconsistencies in a blueprint project");
   console.log("  assist      Draft one document from the project's own context (AI-assisted)");
   console.log("  compliance  Map existing evidence against a standard (not a certification)");
+  console.log("  upgrade     Report template changes since your project's blueprint version");
   console.log();
   console.log(
     `  compliance standards: ${SUPPORTED_STANDARDS.join(", ")}`
@@ -626,6 +629,61 @@ async function runCompliance(rest) {
   }
 }
 
+async function runUpgrade(rest) {
+  const targetDir = rest[0]
+    ? path.resolve(process.cwd(), rest[0])
+    : process.cwd();
+
+  try {
+    const report = await upgradeProject({ cwd: targetDir });
+
+    console.log();
+    console.log(
+      chalk.bold("Collins Obasuyi Product Engineering Blueprint")
+    );
+    console.log();
+    console.log(chalk.bold(`Project: ${report.project.name}`));
+    console.log(`Project blueprint: ${report.projectVersion}`);
+    console.log(`Current blueprint: ${report.currentVersion}`);
+    console.log();
+
+    if (report.upToDate) {
+      console.log(
+        chalk.green(
+          "✓ Up to date — no template changes since this project was generated."
+        )
+      );
+      console.log();
+      return;
+    }
+
+    console.log(chalk.bold("Template changes since this project's version:"));
+    console.log();
+
+    for (const change of report.changes) {
+      console.log(chalk.yellow(`~ [${change.version}] ${change.file}`));
+      console.log(`  ${change.description}`);
+      console.log();
+    }
+
+    console.log(
+      "Nothing has been modified. This is based on your project's recorded"
+    );
+    console.log(
+      "blueprint version, not its actual content -- you may have already"
+    );
+    console.log(
+      "applied some of these by hand. Apply what's relevant yourself, the"
+    );
+    console.log("same way you would any other documentation change.");
+    console.log();
+  } catch (error) {
+    console.log();
+    console.error(chalk.red(error.message));
+    process.exitCode = 1;
+  }
+}
+
 const args = process.argv.slice(2);
 
 if (args.includes("--help") || args.includes("-h")) {
@@ -655,6 +713,8 @@ if (command === "init") {
   await runAssist(rest);
 } else if (command === "compliance") {
   await runCompliance(rest);
+} else if (command === "upgrade") {
+  await runUpgrade(rest);
 } else {
   console.log();
   console.error(chalk.red(`Unknown command: ${command}`));
