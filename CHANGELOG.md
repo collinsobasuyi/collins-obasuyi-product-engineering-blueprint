@@ -1,5 +1,18 @@
 # Changelog
 
+## 0.6.0 - 2026-08-20
+
+### Added
+
+- `upgrade` command (`collins-obasuyi-blueprint upgrade [path]`): reports template content changes since a project's recorded `blueprintVersion`. Report-only — nothing is modified.
+- `scripts/template-changelog.js`: a structured record of template *content* changes (distinct from this file, which covers the whole project), backfilled with the one real entry so far (0.3.1's `SYSTEM_ARCHITECTURE.md` Technology choices section).
+- `upgrade` example wired into the README, using real output verified against `examples/acmepay` (generated at 0.1.0).
+
+### Changed
+
+- `ROADMAP.md`'s v0.6 plan is revised from the original: it assumed diffing template snapshots across git tags, which doesn't work — published npm packages ship zero `.git` content, so a globally-installed or `npx`-run CLI has no git history at runtime. The actual design and the reasoning for it are recorded in `ROADMAP.md`.
+- This closes out the original roadmap's command list (`init` → `check` → `review` → `assist` → `compliance` → `upgrade`). `--apply` for `upgrade` (safely merging a change into a project's own edited content) remains deliberately unbuilt — a real three-way-merge problem, correctly deferred until there's real usage to design around.
+
 ## 0.5.0 - 2026-08-20
 
 ### Added

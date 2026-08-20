@@ -82,7 +82,7 @@ npx collins-obasuyi-blueprint compliance --standard=gdpr
 - Framed strictly as **evidence readiness / coverage mapping** — never "compliant" or "certified." That claim isn't the tool's to make, and overstating it is a real credibility risk.
 - Ships with a small set of frameworks to start (ISO 27001, GDPR are the two called out here); more only once real usage shows demand.
 
-### v0.6 — EVOLVE
+### v0.6 — EVOLVE ✓ Shipped
 
 Give existing projects a path to catch up as the blueprint itself changes.
 
@@ -90,10 +90,13 @@ Give existing projects a path to catch up as the blueprint itself changes.
 npx collins-obasuyi-blueprint upgrade
 ```
 
-- Compares a project's recorded blueprint version (`.blueprint.json`) against the current one.
-- Reports new recommended documents, updated documents, and anything superseded — as a diff, not a silent overwrite.
-- Nothing is modified without an explicit `--apply`.
-- Only becomes necessary once there are real `0.x` projects in the wild that need a defined upgrade story — don't build this speculatively before v0.2–v0.5 exist to actually version against.
+- Compares a project's recorded blueprint version (`.blueprint.json`) against the current one and reports what changed.
+- Report-only for now — nothing is modified. `--apply` isn't built yet; see below for why.
+- Became necessary once a real project (`ubuncare-healthy-shop`) actually hit template drift — one of the earliest confirmations that the "don't build this speculatively" gate from the original plan below had been satisfied.
+
+**Design changed from the original plan above, and it's worth recording why.** The plan assumed diffing template snapshots across git tags. That doesn't work: `npm pack --dry-run` confirms zero `.git` content ships in the published package, so a globally-installed or `npx`-run CLI has no git history to diff against at runtime. The actual design instead ships a small structured changelog of template *content* changes (`scripts/template-changelog.js` — distinct from the prose `CHANGELOG.md`, which covers the whole project) inside the package itself, and `upgrade` compares a project's recorded version against entries newer than it.
+
+This also means `--apply` is further out than originally implied. Reporting "here's what changed" from static data is easy. Safely applying a change into a project's own heavily-edited file is a real three-way-merge problem (original template → new template → the user's actual content) — genuinely harder than anything else built so far, and correctly deferred until there's real usage to design the merge strategy around, same reasoning already used for holding other features back in this file.
 
 ### v1.0 — Stable methodology + organisational use
 

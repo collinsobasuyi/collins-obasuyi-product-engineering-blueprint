@@ -279,6 +279,32 @@ Real output against `examples/acmepay/` — and it's more informative than it lo
 
 Currently supported: `iso27001`, `gdpr`. More only once these two have real usage behind them — see [ROADMAP.md](ROADMAP.md) for why that discipline matters here specifically.
 
+## Track template changes
+
+The blueprint keeps changing after you generate a project — a new section gets added to a template, a new document category ships. `upgrade` tells you what changed since your project's recorded blueprint version, without touching anything.
+
+```text
+$ npx collins-obasuyi-blueprint upgrade
+
+Collins Obasuyi Product Engineering Blueprint
+
+Project: acmepay
+Project blueprint: 0.1.0
+Current blueprint: 0.6.0
+
+Template changes since this project's version:
+
+~ [0.3.1] docs/05-architecture/SYSTEM_ARCHITECTURE.md
+  Added a "Technology choices" section (language, frameworks, database, hosting, key libraries) -- nothing previously captured this anywhere in the blueprint.
+
+Nothing has been modified. This is based on your project's recorded
+blueprint version, not its actual content -- you may have already
+applied some of these by hand. Apply what's relevant yourself, the
+same way you would any other documentation change.
+```
+
+Real output against `examples/acmepay/`, which was generated back at `0.1.0`. Report-only, deliberately: `upgrade` compares your project's *recorded* version, not its actual content — AcmePay's `SYSTEM_ARCHITECTURE.md` already has a hand-written Technology choices section from an earlier session, and `upgrade` still lists it as pending, because that's honestly all the tool can know without inspecting content it has no safe way to merge into. Automatically applying a change into a file you may have heavily customized is a real problem — a three-way merge between the original template, the new template, and your own edits — genuinely harder than anything else here, so it's not attempted yet.
+
 ## Philosophy
 
 - Evidence over assumption. A claim like "it's secure" or "it's tested" should point at a document, not a feeling.
@@ -290,7 +316,7 @@ Currently supported: `iso27001`, `gdpr`. More only once these two have real usag
 ## Project layout
 
 - `bin/` — CLI entry point
-- `scripts/` — the generation, check, review, assist, and compliance engines (`generateProject`, `createSlug`, `checkProject`, `reviewProject`, `loadAssistTarget`, `complianceProject`), plus `scripts/providers/` (the thin Anthropic/OpenAI adapters `assist` calls) and `scripts/doc-utils.js` (shared document-parsing helpers)
+- `scripts/` — the generation, check, review, assist, compliance, and upgrade engines (`generateProject`, `createSlug`, `checkProject`, `reviewProject`, `loadAssistTarget`, `complianceProject`, `upgradeProject`), plus `scripts/providers/` (the thin Anthropic/OpenAI adapters `assist` calls), `scripts/doc-utils.js` (shared document-parsing helpers), and `scripts/template-changelog.js` (the structured record `upgrade` reads)
 - `templates/` — the ~60 baseline document templates
 - `checklists/` — the operational checklists copied into every generated project
 - `examples/` — a completed example project (see above)
@@ -298,7 +324,7 @@ Currently supported: `iso27001`, `gdpr`. More only once these two have real usag
 
 ## Roadmap
 
-`init`, `check`, `review`, and `assist` are done and published. `compliance` is built and tested on `main`, ahead of a v0.5 release. `evolve` is planned after it — see [ROADMAP.md](ROADMAP.md) for what each version means and why they're sequenced this way.
+`init`, `check`, `review`, `assist`, and `compliance` are done and published. `upgrade` is built and tested on `main`, ahead of a v0.6 release — the last command on the original roadmap; see [ROADMAP.md](ROADMAP.md) for what each version means, and for why `upgrade`'s actual design ended up different from the original plan.
 
 ## Contributing
 
