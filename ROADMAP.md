@@ -69,7 +69,7 @@ npx collins-obasuyi-blueprint assist threat-model
 - Every `assist`-generated draft is required to pass through `check`/`review` before it's treated as "done," same as a human-written one.
 - Explicitly not `ai-generate my-product` (whole-project generation from a prompt). That inverts the tool's authority model — the blueprint should stay the source of structure, with AI filling gaps inside it, not the other way around.
 
-### v0.5 — COMPLIANCE
+### v0.5 — COMPLIANCE ✓ Shipped
 
 Map existing blueprint evidence against a framework's expected shape.
 
@@ -108,6 +108,7 @@ These came up (via external review) as plausible future directions. Listed here 
 - **Confluence/Notion export** — wait until users actually ask for it; no signal yet that it's needed.
 - **Multi-project / cross-repo comparison** — only becomes useful once organisations are running this across multiple repos, which requires v0.2+ to exist first anyway.
 - **Full architecture visualisation tooling** — Mermaid generation from the existing architecture docs is enough for now; a dedicated visualization product is a much bigger, separate bet.
+- **Additional `compliance` standards (ISO/IEC 42001, EU AI Act, NIST AI RMF, NIS2, DORA)** — a real mapping pass was drafted for all five and then deliberately not shipped. The three AI-governance ones (ISO 42001, EU AI Act, NIST AI RMF) mapped cleanly onto `docs/06-ai/` documents; NIS2 and DORA were weaker — DORA in particular ended up 4-of-5 areas pointing at nearly the same evidence as NIS2, since this blueprint has no dedicated financial-sector documents. More importantly: `compliance` shipped with `iso27001`/`gdpr` and has had zero real usage to validate those two are even calibrated correctly. Adding five more before that validation happens is the exact breadth-before-depth mistake the roadmap was written to resist. Revisit once `compliance` has real usage and, ideally, once there's a specific project (AI-enabled and/or regulated) that would actually use one of these.
 
 ## Notes for future updates to this file
 

@@ -1,5 +1,18 @@
 # Changelog
 
+## 0.5.0 - 2026-08-20
+
+### Added
+
+- `compliance` command (`collins-obasuyi-blueprint compliance --standard=<standard> [path]`): maps existing blueprint evidence against a framework's expected shape, with zero LLM involvement. Ships with two standards: `iso27001`, `gdpr`.
+- Framed strictly as evidence-readiness / coverage mapping — every run ends with an explicit "not a compliance certification" disclaimer, and there are no pass/fail exit-code semantics implying a gate.
+- Framework areas map to either a whole document (reusing `check`'s existing per-document status) or a specific section within one, used for GDPR since it concentrates almost entirely in `PRIVACY_MODEL.md` — verified this matters: without section-level mapping every GDPR area would repeat one binary signal instead of reflecting real partial coverage.
+- `compliance` example wired into the README, using real output verified against `examples/acmepay` (GDPR: 67%, correctly reflecting which privacy sections are actually written).
+
+### Changed
+
+- Refactored two duplicated helpers into shared modules ahead of a third consumer: `extractHeadingSection` moved out of `review-project.js` into `scripts/doc-utils.js`; the template-by-destination lookup moved out of `assist-project.js` into a single `templateByDestination` export from `generate-project.js`.
+
 ## 0.4.0 - 2026-08-20
 
 ### Added

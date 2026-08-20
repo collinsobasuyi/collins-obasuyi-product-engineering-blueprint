@@ -251,6 +251,34 @@ Two safety nets run before you ever see output: if a project doesn't have enough
 
 **AI drafts. The blueprint validates. You approve.**
 
+## Map compliance evidence
+
+`compliance` reports which parts of a framework already have supporting evidence in your project, and which don't — still zero LLM involvement, same category as `check`/`review`. It never says "compliant" or "certified"; that's not a claim this tool — or any tool — gets to make on your behalf. It says what exists and what's missing, and ends every run with that disclaimer explicitly.
+
+```text
+$ npx collins-obasuyi-blueprint compliance --standard=gdpr examples/acmepay
+
+Collins Obasuyi Product Engineering Blueprint
+
+Project: acmepay
+Standard: GDPR
+
+✗ Data inventory — docs/07-data/DATA_DICTIONARY.md (no evidence yet)
+✗ Retention schedule — docs/07-data/DATA_RETENTION.md (no evidence yet)
+✓ Lawful basis and consent — docs/09-privacy-governance/PRIVACY_MODEL.md § Consent and transparency
+✓ Data minimisation — docs/09-privacy-governance/PRIVACY_MODEL.md § Minimisation
+✓ Data subject deletion rights — docs/09-privacy-governance/PRIVACY_MODEL.md § Deletion
+✓ Third-party processors — docs/09-privacy-governance/PRIVACY_MODEL.md § Third parties
+
+COVERAGE: 67%
+
+This is an evidence-readiness report, not a compliance certification.
+```
+
+Real output against `examples/acmepay/` — and it's more informative than it looks at first glance. A naive version of this command would map GDPR entirely onto `PRIVACY_MODEL.md` and just repeat one "is this document done" signal six times. Instead, each area maps to a specific *section* within it, so AcmePay's genuinely partial state shows through: the privacy sections it actually wrote are `✓`, and the two data-management documents it didn't touch are honestly `✗` — not rounded up because a related document happens to be finished.
+
+Currently supported: `iso27001`, `gdpr`. More only once these two have real usage behind them — see [ROADMAP.md](ROADMAP.md) for why that discipline matters here specifically.
+
 ## Philosophy
 
 - Evidence over assumption. A claim like "it's secure" or "it's tested" should point at a document, not a feeling.
@@ -262,7 +290,7 @@ Two safety nets run before you ever see output: if a project doesn't have enough
 ## Project layout
 
 - `bin/` — CLI entry point
-- `scripts/` — the generation, check, review, and assist engines (`generateProject`, `createSlug`, `checkProject`, `reviewProject`, `loadAssistTarget`), plus `scripts/providers/` (the thin Anthropic/OpenAI adapters `assist` calls)
+- `scripts/` — the generation, check, review, assist, and compliance engines (`generateProject`, `createSlug`, `checkProject`, `reviewProject`, `loadAssistTarget`, `complianceProject`), plus `scripts/providers/` (the thin Anthropic/OpenAI adapters `assist` calls) and `scripts/doc-utils.js` (shared document-parsing helpers)
 - `templates/` — the ~60 baseline document templates
 - `checklists/` — the operational checklists copied into every generated project
 - `examples/` — a completed example project (see above)
@@ -270,7 +298,7 @@ Two safety nets run before you ever see output: if a project doesn't have enough
 
 ## Roadmap
 
-`init`, `check`, and `review` are done and published. `assist` is built, tested, and live-verified on `main`, ahead of a v0.4 release. `compliance` and `evolve` are planned after it, in that order, deliberately — see [ROADMAP.md](ROADMAP.md) for what each version means and why they're sequenced this way.
+`init`, `check`, `review`, and `assist` are done and published. `compliance` is built and tested on `main`, ahead of a v0.5 release. `evolve` is planned after it — see [ROADMAP.md](ROADMAP.md) for what each version means and why they're sequenced this way.
 
 ## Contributing
 
