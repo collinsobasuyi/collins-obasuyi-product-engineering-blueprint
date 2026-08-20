@@ -1,9 +1,39 @@
 import fs from "fs-extra";
 import path from "path";
 
-import { getBlueprintRoot, renderTemplateContent } from "./generate-project.js";
+import {
+  getBlueprintRoot,
+  renderTemplateContent,
+  coreTemplates,
+  baselineTemplates,
+  checklistTemplates,
+  conditionalTemplateGroups
+} from "./generate-project.js";
+
+const TEMPLATE_BY_DESTINATION = new Map();
+
+for (const [template, destination] of [
+  ...coreTemplates,
+  ...baselineTemplates,
+  ...checklistTemplates
+]) {
+  TEMPLATE_BY_DESTINATION.set(destination, template);
+}
+
+for (const group of conditionalTemplateGroups) {
+  for (const [template, destination] of group.templates) {
+    TEMPLATE_BY_DESTINATION.set(destination, template);
+  }
+}
 
 export const ASSISTABLE_DOCUMENTS = {
+  PRODUCT_OVERVIEW: {
+    template: "templates/product/PRODUCT_OVERVIEW.md",
+    destination: "docs/00-product/PRODUCT_OVERVIEW.md",
+    contextDocuments: [
+      "IDEA.md"
+    ]
+  },
   THREAT_MODEL: {
     template: "templates/security/THREAT_MODEL.md",
     destination: "docs/08-security/THREAT_MODEL.md",
@@ -64,6 +94,23 @@ function draftPathFor(destinationPath) {
   return destinationPath.replace(/\.md$/, ".draft.md");
 }
 
+async function hasRealContent({ blueprintRoot, destination, content, replacements }) {
+  const templatePath = TEMPLATE_BY_DESTINATION.get(destination);
+
+  if (!templatePath) {
+    // Not a blueprint-generated document (e.g. IDEA.md) -- there is no
+    // template to diff against, so "real content" just means non-empty.
+    return content.trim().length > 0;
+  }
+
+  const fresh = await renderTemplateContent(
+    path.join(blueprintRoot, templatePath),
+    replacements
+  );
+
+  return content !== fresh;
+}
+
 export async function loadAssistTarget({ cwd = process.cwd(), documentName }) {
   const { key, spec } = resolveAssistSpec(documentName);
 
@@ -109,12 +156,22 @@ export async function loadAssistTarget({ cwd = process.cwd(), documentName }) {
     const contextPath = path.join(cwd, contextDestination);
 
     if (await fs.pathExists(contextPath)) {
+      const content = await fs.readFile(contextPath, "utf8");
+
       contextDocuments.push({
         path: contextDestination,
-        content: await fs.readFile(contextPath, "utf8")
+        content,
+        hasContent: await hasRealContent({
+          blueprintRoot,
+          destination: contextDestination,
+          content,
+          replacements
+        })
       });
     }
   }
+
+  const contextHasContent = contextDocuments.some((doc) => doc.hasContent);
 
   return {
     key,
@@ -124,6 +181,7 @@ export async function loadAssistTarget({ cwd = process.cwd(), documentName }) {
     actualContent,
     hasExistingContent,
     contextDocuments,
+    contextHasContent,
     destinationPath,
     draftPath: draftPathFor(destinationPath)
   };

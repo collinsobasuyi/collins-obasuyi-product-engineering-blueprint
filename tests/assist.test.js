@@ -41,7 +41,7 @@ test("resolveAssistSpec throws for an unsupported document name", () => {
   );
 });
 
-test("resolveAssistSpec is case-insensitive and covers all four supported documents", () => {
+test("resolveAssistSpec is case-insensitive and covers all supported documents", () => {
   for (const key of Object.keys(ASSISTABLE_DOCUMENTS)) {
     const { key: resolvedKey } = resolveAssistSpec(key.toLowerCase());
 
@@ -124,6 +124,99 @@ test("loadAssistTarget reports hasExistingContent as true once the document is e
       });
 
       assert.equal(target.hasExistingContent, true);
+    }
+  );
+});
+
+test("assist PRODUCT_OVERVIEW uses IDEA.md as its context, not other docs", () => {
+  assert.deepEqual(
+    ASSISTABLE_DOCUMENTS.PRODUCT_OVERVIEW.contextDocuments,
+    ["IDEA.md"]
+  );
+});
+
+test("contextHasContent is false when no context documents have real content", async () => {
+  await withTempProject(
+    { projectName: "Totally Blank Project" },
+    async (result) => {
+      const target = await loadAssistTarget({
+        cwd: result.outputDir,
+        documentName: "THREAT_MODEL"
+      });
+
+      assert.equal(target.contextHasContent, false);
+    }
+  );
+});
+
+test("contextHasContent becomes true once at least one context document is edited", async () => {
+  await withTempProject(
+    { projectName: "One Filled Context Project" },
+    async (result) => {
+      const overviewPath = path.join(
+        result.outputDir,
+        "docs/00-product/PRODUCT_OVERVIEW.md"
+      );
+
+      const original = await fs.readFile(overviewPath, "utf8");
+
+      await fs.writeFile(
+        overviewPath,
+        original.replace(
+          "What does One Filled Context Project exist to do?",
+          "It helps people track their reading habits."
+        )
+      );
+
+      const target = await loadAssistTarget({
+        cwd: result.outputDir,
+        documentName: "THREAT_MODEL"
+      });
+
+      assert.equal(target.contextHasContent, true);
+
+      const overviewContext = target.contextDocuments.find(
+        (doc) => doc.path === "docs/00-product/PRODUCT_OVERVIEW.md"
+      );
+
+      assert.equal(overviewContext.hasContent, true);
+    }
+  );
+});
+
+test("assist PRODUCT_OVERVIEW picks up a real IDEA.md as context", async () => {
+  await withTempProject(
+    { projectName: "Idea File Project" },
+    async (result) => {
+      await fs.writeFile(
+        path.join(result.outputDir, "IDEA.md"),
+        "An app that helps small bakeries manage custom cake orders."
+      );
+
+      const target = await loadAssistTarget({
+        cwd: result.outputDir,
+        documentName: "PRODUCT_OVERVIEW"
+      });
+
+      assert.equal(target.contextDocuments.length, 1);
+      assert.equal(target.contextDocuments[0].path, "IDEA.md");
+      assert.equal(target.contextDocuments[0].hasContent, true);
+      assert.equal(target.contextHasContent, true);
+    }
+  );
+});
+
+test("assist PRODUCT_OVERVIEW has no context and no error when IDEA.md does not exist", async () => {
+  await withTempProject(
+    { projectName: "No Idea File Project" },
+    async (result) => {
+      const target = await loadAssistTarget({
+        cwd: result.outputDir,
+        documentName: "PRODUCT_OVERVIEW"
+      });
+
+      assert.deepEqual(target.contextDocuments, []);
+      assert.equal(target.contextHasContent, false);
     }
   );
 });

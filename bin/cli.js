@@ -49,6 +49,12 @@ function printHelp() {
   console.log(
     "  ANTHROPIC_API_KEY / OPENAI_API_KEY) set in your environment."
   );
+  console.log(
+    "  assist PRODUCT_OVERVIEW reads an optional IDEA.md in your project root"
+  );
+  console.log(
+    "  (a few sentences about what you're building) if one exists."
+  );
   console.log();
   console.log("Options:");
   console.log("  --help     Show help");
@@ -401,6 +407,55 @@ async function runAssist(rest) {
     ]);
 
     if (!proceed) {
+      console.log();
+      console.log("Cancelled.");
+      console.log();
+      return;
+    }
+  }
+
+  if (!target.contextHasContent) {
+    console.log();
+    console.log(
+      chalk.yellow(
+        "This project doesn't have much content to draw from yet " +
+          "(the context documents are still mostly blank)."
+      )
+    );
+    console.log(
+      chalk.yellow(
+        "A draft based on this will likely come back mostly placeholder too."
+      )
+    );
+
+    if (target.key === "PRODUCT_OVERVIEW") {
+      console.log();
+      console.log(
+        chalk.dim(
+          "Tip: create an IDEA.md in your project root with a few sentences " +
+            "about what you're building, then try again."
+        )
+      );
+    } else {
+      console.log();
+      console.log(
+        chalk.dim(
+          "Tip: fill in PRODUCT_OVERVIEW.md and other foundational docs " +
+            "first for a better draft."
+        )
+      );
+    }
+
+    const { proceedAnyway } = await inquirer.prompt([
+      {
+        type: "confirm",
+        name: "proceedAnyway",
+        message: "Continue anyway?",
+        default: false
+      }
+    ]);
+
+    if (!proceedAnyway) {
       console.log();
       console.log("Cancelled.");
       console.log();
