@@ -4,27 +4,8 @@ import path from "path";
 import {
   getBlueprintRoot,
   renderTemplateContent,
-  coreTemplates,
-  baselineTemplates,
-  checklistTemplates,
-  conditionalTemplateGroups
+  templateByDestination
 } from "./generate-project.js";
-
-const TEMPLATE_BY_DESTINATION = new Map();
-
-for (const [template, destination] of [
-  ...coreTemplates,
-  ...baselineTemplates,
-  ...checklistTemplates
-]) {
-  TEMPLATE_BY_DESTINATION.set(destination, template);
-}
-
-for (const group of conditionalTemplateGroups) {
-  for (const [template, destination] of group.templates) {
-    TEMPLATE_BY_DESTINATION.set(destination, template);
-  }
-}
 
 export const ASSISTABLE_DOCUMENTS = {
   PRODUCT_OVERVIEW: {
@@ -95,7 +76,7 @@ function draftPathFor(destinationPath) {
 }
 
 async function hasRealContent({ blueprintRoot, destination, content, replacements }) {
-  const templatePath = TEMPLATE_BY_DESTINATION.get(destination);
+  const templatePath = templateByDestination.get(destination);
 
   if (!templatePath) {
     // Not a blueprint-generated document (e.g. IDEA.md) -- there is no

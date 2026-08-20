@@ -7,6 +7,7 @@ import {
   getBlueprintRoot,
   renderTemplateContent
 } from "./generate-project.js";
+import { extractHeadingSection } from "./doc-utils.js";
 
 function escapeRegExp(value) {
   return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
@@ -43,34 +44,6 @@ function extractField(blockText, label) {
   const match = blockText.match(regex);
 
   return match ? match[1].trim() : null;
-}
-
-function extractHeadingSection(content, headingName) {
-  const lines = content.split("\n");
-  let capturing = false;
-  const captured = [];
-
-  for (const line of lines) {
-    const headingMatch = line.match(/^(#{2,4})\s+(.*)$/);
-
-    if (headingMatch) {
-      if (capturing) {
-        break;
-      }
-
-      if (headingMatch[2].trim() === headingName) {
-        capturing = true;
-      }
-
-      continue;
-    }
-
-    if (capturing) {
-      captured.push(line);
-    }
-  }
-
-  return captured.join("\n").trim();
 }
 
 const FIELD_LINKAGE_RULES = [

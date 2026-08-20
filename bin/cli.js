@@ -16,6 +16,10 @@ import {
   findMissingSections
 } from "../scripts/assist-project.js";
 import { getConfiguredProvider } from "../scripts/providers/index.js";
+import {
+  complianceProject,
+  SUPPORTED_STANDARDS
+} from "../scripts/compliance-project.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -34,12 +38,18 @@ function printHelp() {
   console.log("  collins-obasuyi-blueprint check [path]");
   console.log("  collins-obasuyi-blueprint review [path]");
   console.log("  collins-obasuyi-blueprint assist <document> [path]");
+  console.log("  collins-obasuyi-blueprint compliance --standard=<standard> [path]");
   console.log();
   console.log("Commands:");
-  console.log("  init       Create a new blueprint project");
-  console.log("  check      Report completeness and readiness of a blueprint project");
-  console.log("  review     Find cross-document inconsistencies in a blueprint project");
-  console.log("  assist     Draft one document from the project's own context (AI-assisted)");
+  console.log("  init        Create a new blueprint project");
+  console.log("  check       Report completeness and readiness of a blueprint project");
+  console.log("  review      Find cross-document inconsistencies in a blueprint project");
+  console.log("  assist      Draft one document from the project's own context (AI-assisted)");
+  console.log("  compliance  Map existing evidence against a standard (not a certification)");
+  console.log();
+  console.log(
+    `  compliance standards: ${SUPPORTED_STANDARDS.join(", ")}`
+  );
   console.log();
   console.log(
     `  assist documents: ${Object.keys(ASSISTABLE_DOCUMENTS).join(", ")}`
@@ -527,6 +537,95 @@ async function runAssist(rest) {
   console.log();
 }
 
+function formatComplianceLine(area) {
+  const location = area.section
+    ? `${area.file} § ${area.section}`
+    : area.file;
+
+  if (area.status === "complete") {
+    return chalk.green(`✓ ${area.area} — ${location}`);
+  }
+
+  if (area.status === "todo") {
+    return chalk.yellow(
+      `⚠ ${area.area} — ${location} (evidence incomplete)`
+    );
+  }
+
+  if (area.status === "no-document") {
+    return chalk.red(
+      `✗ ${area.area} — ${location} (document not present in this project)`
+    );
+  }
+
+  return chalk.red(`✗ ${area.area} — ${location} (no evidence yet)`);
+}
+
+async function runCompliance(rest) {
+  let standard;
+  let pathArg;
+
+  for (const arg of rest) {
+    if (arg.startsWith("--standard=")) {
+      standard = arg.slice("--standard=".length);
+    } else if (!arg.startsWith("--")) {
+      pathArg = arg;
+    }
+  }
+
+  const targetDir = pathArg
+    ? path.resolve(process.cwd(), pathArg)
+    : process.cwd();
+
+  if (!standard) {
+    console.log();
+    console.error(
+      chalk.red(
+        "Usage: collins-obasuyi-blueprint compliance --standard=<standard> [path]"
+      )
+    );
+    console.log();
+    console.log(`Supported standards: ${SUPPORTED_STANDARDS.join(", ")}`);
+    console.log();
+    process.exitCode = 1;
+    return;
+  }
+
+  try {
+    const report = await complianceProject({
+      cwd: targetDir,
+      standard
+    });
+
+    console.log();
+    console.log(
+      chalk.bold("Collins Obasuyi Product Engineering Blueprint")
+    );
+    console.log();
+    console.log(chalk.bold(`Project: ${report.project.name}`));
+    console.log(`Standard: ${report.label}`);
+    console.log();
+
+    for (const area of report.areas) {
+      console.log(formatComplianceLine(area));
+    }
+
+    console.log();
+    console.log(chalk.bold(`COVERAGE: ${report.summary.coverage}%`));
+    console.log();
+    console.log(
+      chalk.dim(
+        "This is an evidence-readiness report, not a compliance certification."
+      )
+    );
+    console.log();
+  } catch (error) {
+    console.log();
+    console.error(chalk.red(error.message));
+    process.exitCode = 1;
+  }
+}
+
 const args = process.argv.slice(2);
 
 if (args.includes("--help") || args.includes("-h")) {
@@ -554,6 +653,8 @@ if (command === "init") {
   await runReview(rest);
 } else if (command === "assist") {
   await runAssist(rest);
+} else if (command === "compliance") {
+  await runCompliance(rest);
 } else {
   console.log();
   console.error(chalk.red(`Unknown command: ${command}`));

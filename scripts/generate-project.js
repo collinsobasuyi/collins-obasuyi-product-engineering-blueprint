@@ -376,6 +376,22 @@ export const conditionalTemplateGroups = [
   }
 ];
 
+export const templateByDestination = new Map();
+
+for (const [template, destination] of [
+  ...coreTemplates,
+  ...baselineTemplates,
+  ...checklistTemplates
+]) {
+  templateByDestination.set(destination, template);
+}
+
+for (const group of conditionalTemplateGroups) {
+  for (const [template, destination] of group.templates) {
+    templateByDestination.set(destination, template);
+  }
+}
+
 export async function generateProject({
   projectName,
   isAI = false,
