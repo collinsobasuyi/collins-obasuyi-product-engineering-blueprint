@@ -8,6 +8,13 @@ import { fileURLToPath } from "url";
 import { generateProject } from "../scripts/generate-project.js";
 import { checkProject } from "../scripts/check-project.js";
 import { reviewProject } from "../scripts/review-project.js";
+import {
+  ASSISTABLE_DOCUMENTS,
+  loadAssistTarget,
+  buildAssistPrompt,
+  writeAssistDraft
+} from "../scripts/assist-project.js";
+import { getConfiguredProvider } from "../scripts/providers/index.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -25,11 +32,23 @@ function printHelp() {
   console.log("  collins-obasuyi-blueprint init [project-name]");
   console.log("  collins-obasuyi-blueprint check [path]");
   console.log("  collins-obasuyi-blueprint review [path]");
+  console.log("  collins-obasuyi-blueprint assist <document> [path]");
   console.log();
   console.log("Commands:");
   console.log("  init       Create a new blueprint project");
   console.log("  check      Report completeness and readiness of a blueprint project");
   console.log("  review     Find cross-document inconsistencies in a blueprint project");
+  console.log("  assist     Draft one document from the project's own context (AI-assisted)");
+  console.log();
+  console.log(
+    `  assist documents: ${Object.keys(ASSISTABLE_DOCUMENTS).join(", ")}`
+  );
+  console.log(
+    "  assist requires BLUEPRINT_AI_PROVIDER + the matching API key (see"
+  );
+  console.log(
+    "  ANTHROPIC_API_KEY / OPENAI_API_KEY) set in your environment."
+  );
   console.log();
   console.log("Options:");
   console.log("  --help     Show help");
@@ -282,6 +301,157 @@ async function runReview(rest) {
   }
 }
 
+async function runAssist(rest) {
+  const documentName = rest[0];
+  const targetDir = rest[1]
+    ? path.resolve(process.cwd(), rest[1])
+    : process.cwd();
+
+  if (!documentName) {
+    console.log();
+    console.error(
+      chalk.red(
+        "Usage: collins-obasuyi-blueprint assist <document> [path]"
+      )
+    );
+    console.log();
+    console.log("Supported documents:");
+
+    for (const key of Object.keys(ASSISTABLE_DOCUMENTS)) {
+      console.log(`  ${key}`);
+    }
+
+    console.log();
+    process.exitCode = 1;
+    return;
+  }
+
+  let provider;
+
+  try {
+    provider = getConfiguredProvider();
+  } catch (error) {
+    console.log();
+    console.error(chalk.red(error.message));
+    process.exitCode = 1;
+    return;
+  }
+
+  if (!provider) {
+    console.log();
+    console.log(chalk.bold("No AI provider configured."));
+    console.log();
+    console.log(
+      'Set BLUEPRINT_AI_PROVIDER to "anthropic" or "openai", and the matching API key:'
+    );
+    console.log();
+    console.log("  BLUEPRINT_AI_PROVIDER=anthropic");
+    console.log("  ANTHROPIC_API_KEY=...");
+    console.log();
+    console.log("or:");
+    console.log();
+    console.log("  BLUEPRINT_AI_PROVIDER=openai");
+    console.log("  OPENAI_API_KEY=...");
+    console.log();
+    console.log(
+      chalk.dim(
+        "Your API key stays in your local environment and is never written into project files."
+      )
+    );
+    console.log();
+    process.exitCode = 1;
+    return;
+  }
+
+  let target;
+
+  try {
+    target = await loadAssistTarget({
+      cwd: targetDir,
+      documentName
+    });
+  } catch (error) {
+    console.log();
+    console.error(chalk.red(error.message));
+    process.exitCode = 1;
+    return;
+  }
+
+  console.log();
+  console.log(
+    chalk.bold("Collins Obasuyi Product Engineering Blueprint")
+  );
+  console.log();
+  console.log(chalk.bold(`Project: ${target.config.project.name}`));
+  console.log(`Drafting: ${target.spec.destination}`);
+
+  if (target.hasExistingContent) {
+    console.log();
+    console.log(
+      chalk.yellow(`${target.spec.destination} already contains content.`)
+    );
+
+    const { proceed } = await inquirer.prompt([
+      {
+        type: "confirm",
+        name: "proceed",
+        message: `Generate a draft anyway? It will be written to ${path.basename(target.draftPath)} and will not touch the existing file.`,
+        default: false
+      }
+    ]);
+
+    if (!proceed) {
+      console.log();
+      console.log("Cancelled.");
+      console.log();
+      return;
+    }
+  }
+
+  console.log();
+  console.log(
+    "Drafting with AI — this calls an external API and may take a moment..."
+  );
+
+  const { system, prompt } = buildAssistPrompt(target);
+
+  let draftContent;
+
+  try {
+    draftContent = await provider.generate({
+      system,
+      prompt,
+      maxTokens: 4096
+    });
+  } catch (error) {
+    console.log();
+    console.error(chalk.red(error.message));
+    process.exitCode = 1;
+    return;
+  }
+
+  await writeAssistDraft({
+    draftPath: target.draftPath,
+    content: draftContent
+  });
+
+  console.log();
+  console.log(
+    chalk.green(
+      `✓ Draft written to ${path.relative(targetDir, target.draftPath)}`
+    )
+  );
+  console.log();
+  console.log(
+    "This is a draft, not a decision. Review it, then replace the original"
+  );
+  console.log(
+    "file yourself if you're happy with it. Run check/review again"
+  );
+  console.log("afterward, same as you would for anything you wrote by hand.");
+  console.log();
+}
+
 const args = process.argv.slice(2);
 
 if (args.includes("--help") || args.includes("-h")) {
@@ -307,6 +477,8 @@ if (command === "init") {
   await runCheck(rest);
 } else if (command === "review") {
   await runReview(rest);
+} else if (command === "assist") {
+  await runAssist(rest);
 } else {
   console.log();
   console.error(chalk.red(`Unknown command: ${command}`));
