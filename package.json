@@ -1,6 +1,6 @@
 {
   "name": "collins-obasuyi-blueprint",
-  "version": "0.3.1",
+  "version": "0.4.0",
   "description": "A reusable product engineering blueprint for building secure, tested and production-ready software.",
   "type": "module",
   "bin": {

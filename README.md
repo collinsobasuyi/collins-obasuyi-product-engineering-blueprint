@@ -201,6 +201,56 @@ REVIEW
 
 That's real output too, from a small demo project set up to hit each rule deliberately — `review` only flags a linkage field once you've actually started that entry (an untouched template block is `check`'s job, not `review`'s, so a blank project produces zero findings, not a wall of noise). Run it clean and it just says `✓ No consistency issues found.` — which is exactly what it says against `examples/acmepay/`, since AcmePay's threat model already has every mitigation filled in.
 
+## Draft with AI
+
+`init`, `check`, and `review` never call an LLM. `assist` is the one command that does — and only when you ask, one document at a time, grounded in your project's own existing documents rather than a blind prompt. Provider-agnostic: pick Anthropic or OpenAI, whichever you already have credits for.
+
+```bash
+export BLUEPRINT_AI_PROVIDER=anthropic   # or openai
+export ANTHROPIC_API_KEY=...             # stays local, never written to any file
+npx collins-obasuyi-blueprint assist TEST_STRATEGY
+```
+
+Real output, against `examples/acmepay/` — `TEST_STRATEGY.md` already had content, so `assist` asked before spending an API call:
+
+```text
+docs/10-quality/TEST_STRATEGY.md already contains content.
+? Generate a draft anyway? It will be written to TEST_STRATEGY.draft.md
+  and will not touch the existing file. Yes
+
+Drafting with AI — this calls an external API and may take a moment...
+
+✓ Draft written to docs/10-quality/TEST_STRATEGY.draft.md
+```
+
+`assist` never overwrites anything — the draft always lands in a sibling `.draft.md` file. Its context for `TEST_STRATEGY` was AcmePay's own `PRODUCT_OVERVIEW.md`, `MVP_SCOPE.md`, `SYSTEM_ARCHITECTURE.md`, and `FUNCTIONAL_REQUIREMENTS.md`, and the draft it wrote back showed it: real references to QuickBooks and the banking-rail partner, the real 24-hour cycle-time goal, the real integer-minor-units constraint — and it honestly left `TODO` on the two things nothing in the project had specified yet (regulatory controls, environment strategy), rather than inventing them.
+
+Currently supported: `THREAT_MODEL`, `PRIVACY_MODEL`, `TEST_STRATEGY`, `AI_GUARDRAILS`, and `PRODUCT_OVERVIEW` — which works differently, since it's the first document and there's nothing else yet to draw from. It reads an optional `IDEA.md` at your project root instead: a few rough sentences, not a structured document.
+
+```text
+$ cat IDEA.md
+app where you snap a photo of what's in your fridge/cupboard and it tells
+you what you can actually cook with it right now...
+
+$ npx collins-obasuyi-blueprint assist PRODUCT_OVERVIEW
+
+## Purpose
+
+idea-live-test exists to turn a photo of whatever food you have on hand
+into an immediate, actionable answer to "what can I cook right now?" ...
+
+## Success criteria
+
+- TODO: define target metrics (e.g., percentage of suggested recipes
+  actually cooked, reduction in reported food waste, user retention)
+```
+
+Same behaviour: it turned an unpunctuated, three-sentence idea dump into a properly structured document, and left success metrics as `TODO` rather than invent numbers the idea never mentioned.
+
+Two safety nets run before you ever see output: if a project doesn't have enough written yet for a draft to be worth anything, `assist` says so and asks before spending an API call, instead of quietly handing back another empty document; and every draft is checked against the template's own required sections before it's written — if the model drops one, `assist` tells you, rather than trusting the output blindly.
+
+**AI drafts. The blueprint validates. You approve.**
+
 ## Philosophy
 
 - Evidence over assumption. A claim like "it's secure" or "it's tested" should point at a document, not a feeling.
@@ -212,7 +262,7 @@ That's real output too, from a small demo project set up to hit each rule delibe
 ## Project layout
 
 - `bin/` — CLI entry point
-- `scripts/` — the generation, check, and review engines (`generateProject`, `createSlug`, `checkProject`, `reviewProject`)
+- `scripts/` — the generation, check, review, and assist engines (`generateProject`, `createSlug`, `checkProject`, `reviewProject`, `loadAssistTarget`), plus `scripts/providers/` (the thin Anthropic/OpenAI adapters `assist` calls)
 - `templates/` — the ~60 baseline document templates
 - `checklists/` — the operational checklists copied into every generated project
 - `examples/` — a completed example project (see above)
@@ -220,7 +270,7 @@ That's real output too, from a small demo project set up to hit each rule delibe
 
 ## Roadmap
 
-`init` and `check` are done and published. `review` is built and tested on `main`, ahead of a v0.3 release. `assist`, `compliance`, and `evolve` are planned after it, in that order, deliberately — see [ROADMAP.md](ROADMAP.md) for what each version means and why they're sequenced this way.
+`init`, `check`, and `review` are done and published. `assist` is built, tested, and live-verified on `main`, ahead of a v0.4 release. `compliance` and `evolve` are planned after it, in that order, deliberately — see [ROADMAP.md](ROADMAP.md) for what each version means and why they're sequenced this way.
 
 ## Contributing
 

@@ -1,5 +1,16 @@
 # Changelog
 
+## 0.4.0 - 2026-08-20
+
+### Added
+
+- `assist` command (`collins-obasuyi-blueprint assist <document> [path]`): drafts one document at a time using an AI provider, grounded in the project's own existing documents rather than a blind prompt. Output always goes to a sibling `<document>.draft.md` file — never overwrites the tracked document.
+- Provider-agnostic from day one: thin adapters for Anthropic and OpenAI (`scripts/providers/`) behind one `generate()` interface, selected via `BLUEPRINT_AI_PROVIDER`. Both call their REST API directly via native `fetch` — zero new dependencies. API keys (`ANTHROPIC_API_KEY` / `OPENAI_API_KEY`) are environment-only, never read from or written to `.blueprint.json`, generated docs, or any repo file.
+- Supported documents: `THREAT_MODEL`, `PRIVACY_MODEL`, `TEST_STRATEGY`, `AI_GUARDRAILS`, and `PRODUCT_OVERVIEW` — the last reading an optional `IDEA.md` at the project root (a free-form idea dump) as its context, since it's the first document and nothing else exists yet to draw from.
+- Safety confirmations before any API call: warns and asks before drafting over a document that already has real content; warns and asks if none of the context documents have real content yet (a draft from nothing would be mostly placeholder).
+- Draft validation: after generation, the draft is checked against the template's own required section headings (`findMissingSections`) and the CLI warns if any are missing, rather than silently trusting the model's output.
+- `assist` example wired into the README, using real output verified against a live API call (twice — the first live test caught two real defects, both fixed and re-verified live before release).
+
 ## 0.3.1 - 2026-08-19
 
 ### Added

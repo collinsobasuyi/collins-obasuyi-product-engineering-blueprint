@@ -56,7 +56,7 @@ npx collins-obasuyi-blueprint review
 - Still zero LLM dependency for the core checks — these are structural/cross-reference rules over the generated documents and `.blueprint.json`, the same category of validation as `check`, just relational instead of per-document.
 - This is what makes `assist` (v0.4) safe to build: assisted drafts get checked against the same consistency rules as human-written ones.
 
-### v0.4 — AI ASSIST
+### v0.4 — AI ASSIST ✓ Shipped
 
 Draft individual documents from the project's own existing truth — never from nothing.
 
